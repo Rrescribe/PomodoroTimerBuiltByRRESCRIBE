@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizable Pomodoro Timer</title>
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --background-color: rgba(255, 255, 255, 0.9);
+            --text-color: #333;
+            --button-color: #667eea;
+            --button-hover: #5a6fd8;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: background 0.5s ease;
+        }
+        
+        .container {
+            background-color: var(--background-color);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+        }
+        
+        .timer-display {
+            font-size: 5rem;
+            font-weight: bold;
+            color: var(--text-color);
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            background-color: var(--button-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .session-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .session-btn {
+            background-color: #f8f9fa;
+            color: #333;
+            border: 2px solid #e9ecef;
+        }
+        
+        .session-btn.active {
+            background-color: var(--button-color);
+            color: white;
+            border-color: var(--button-color);
+        }
+        
+        .progress-container {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--button-color);
+            width: 0%;
+            transition: width 1s linear;
+        }
+        
+        .session-info {
+            font-size: 1.2rem;
+            color: #666;
+            margin-top: 20px;
+        }
+        
+        /* Customization Panel */
+        .customization-panel {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: left;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .panel-content {
+            display: none;
+        }
+        
+        .panel-content.active {
+            display: block;
+        }
+        
+        .setting-group {
+            margin-bottom: 20px;
+        }
+        
+        .setting-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        
+        .theme-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .theme-option {
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            border: 2px solid transparent;
+        }
+        
+        .theme-option.active {
+            border-color: var(--button-color);
+        }
+        
+        .theme-1 { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .theme-2 { background: linear-gradient(135deg, #f093fb, #f5576c); color: white; }
+        .theme-3 { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; }
+        .theme-4 { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #333; }
+        .theme-5 { background: linear-gradient(135deg, #fa709a, #fee140); color: #333; }
+        .theme-6 { background: linear-gradient(135deg, #a8edea, #fed6e3); color: #333; }
+        
+        /* Footer */
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .creator {
+            font-weight: 600;
+            color: var(--button-color);
+        }
+        
+        @media (max-width: 500px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .timer-display {
+                font-size: 3.5rem;
+            }
+            
+            .controls, .session-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 200px;
+            }
+            
+            .theme-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Customizable Pomodoro Timer</h1>
+        
+        <div class="session-controls">
+            <button class="session-btn active" id="work-btn">Work Session</button>
+            <button class="session-btn" id="break-btn">Break Session</button>
+        </div>
+        
+        <div class="timer-display" id="timer">25:00</div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div class="controls">
+            <button id="start-btn">Start</button>
+            <button id="pause-btn" disabled>Pause</button>
+            <button id="reset-btn">Reset</button>
+        </div>
+        
+        <div class="session-info" id="session-info">Ready to focus? Start the timer!</div>
+        
+        <!-- Customization Panel -->
+        <div class="customization-panel">
+            <div class="panel-header" id="panel-header">
+                <div class="panel-title">Customize Timer</div>
+                <div>▼</div>
+            </div>
+            <div class="panel-content" id="panel-content">
+                <div class="setting-group">
+                    <label class="setting-label" for="work-time">Work Duration (minutes)</label>
+                    <input type="number" id="work-time" min="1" max="60" value="25">
+                </div>
+                
+                <div class="setting-group">
+                    <label class="setting-label" for="break-time">Break Duration (minutes)</label>
+                    <input type="number" id="break-time" min="1" max="30" value="5">
+                </div>
+                
+                <div class="setting-group">
+                    <label class="setting-label">Theme Selection</label>
+                    <div class="theme-options">
+                        <div class="theme-option theme-1 active" data-theme="1">Ocean</div>
+                        <div class="theme-option theme-2" data-theme="2">Sunset</div>
+                        <div class="theme-option theme-3" data-theme="3">Sky</div>
+                        <div class="theme-option theme-4" data-theme="4">Mint</div>
+                        <div class="theme-option theme-5" data-theme="5">Sunshine</div>
+                        <div class="theme-option theme-6" data-theme="6">Pastel</div>
+                    </div>
+                </div>
+                
+                <button id="apply-settings">Apply Settings</button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Built with ❤️ by <span class="creator">RRESCRIBE</span></p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM Elements
+        const timerDisplay = document.getElementById('timer');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const workBtn = document.getElementById('work-btn');
+        const breakBtn = document.getElementById('break-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const sessionInfo = document.getElementById('session-info');
+        const panelHeader = document.getElementById('panel-header');
+        const panelContent = document.getElementById('panel-content');
+        const workTimeInput = document.getElementById('work-time');
+        const breakTimeInput = document.getElementById('break-time');
+        const themeOptions = document.querySelectorAll('.theme-option');
+        const applySettingsBtn = document.getElementById('apply-settings');
+        
+        // Timer variables
+        let workTime = 25 * 60; // 25 minutes in seconds
+        let breakTime = 5 * 60; // 5 minutes in seconds
+        let timeLeft = workTime;
+        let timerInterval = null;
+        let isRunning = false;
+        let isWorkSession = true;
+        let totalTime = workTime;
+        
+        // Theme definitions
+        const themes = {
+            1: {
+                primary: '#667eea',
+                secondary: '#764ba2',
+                background: 'rgba(255, 255, 255, 0.9)',
+                text: '#333',
+                button: '#667eea',
+                buttonHover: '#5a6fd8'
+            },
+            2: {
+                primary: '#f093fb',
+                secondary: '#f5576c',
+                background: 'rgba(255, 255, 255, 0.9)',
+                text: '#333',
+                button: '#f093fb',
+                buttonHover: '#e685f2'
+            },
+            3: {
+                primary: '#4facfe',
+                secondary: '#00f2fe',
+                background: 'rgba(255, 255, 255, 0.9)',
+                text: '#333',
+                button: '#4facfe',
+                buttonHover: '#3a9bed'
+            },
+            4: {
+                primary: '#43e97b',
+                secondary: '#38f9d7',
+                background: 'rgba(255, 255, 255, 0.9)',
+                text: '#333',
+                button: '#43e97b',
+                buttonHover: '#31d469'
+            },
+            5: {
+                primary: '#fa709a',
+                secondary: '#fee140',
+                background: 'rgba(255, 255, 255, 0.9)',
+                text: '#333',
+                button: '#fa709a',
+                buttonHover: '#f85c8e'
+            },
+            6: {
+                primary: '#a8edea',
+                secondary: '#fed6e3',
+                background: 'rgba(255, 255, 255, 0.9)',
+                text: '#333',
+                button: '#a8edea',
+                buttonHover: '#92e4e1'
+            }
+        };
+        
+        // Format time as MM:SS
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Update the timer display
+        function updateDisplay() {
+            timerDisplay.textContent = formatTime(timeLeft);
+            const progress = ((totalTime - timeLeft) / totalTime) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // Start the timer
+        function startTimer() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            
+            sessionInfo.textContent = isWorkSession ? 
+                "Focus time! Work on your task." : 
+                "Take a break. Relax and recharge.";
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    
+                    // Play a sound (using browser's AudioContext)
+                    try {
+                        playBeep();
+                    } catch (e) {
+                        console.log("Could not play sound");
+                    }
+                    
+                    // Switch sessions
+                    if (isWorkSession) {
+                        sessionInfo.textContent = "Work session complete! Time for a break.";
+                        switchToBreakSession();
+                    } else {
+                        sessionInfo.textContent = "Break over! Ready for another work session?";
+                        switchToWorkSession();
+                    }
+                    
+                    startBtn.disabled = false;
+                    pauseBtn.disabled = true;
+                }
+            }, 1000);
+        }
+        
+        // Pause the timer
+        function pauseTimer() {
+            if (!isRunning) return;
+            
+            clearInterval(timerInterval);
+            isRunning = false;
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            sessionInfo.textContent = "Timer paused";
+        }
+        
+        // Reset the timer
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timeLeft = isWorkSession ? workTime : breakTime;
+            totalTime = timeLeft;
+            updateDisplay();
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            sessionInfo.textContent = isWorkSession ? 
+                "Ready to focus? Start the timer!" : 
+                "Break time ready. Start when you're ready!";
+        }
+        
+        // Switch to work session
+        function switchToWorkSession() {
+            isWorkSession = true;
+            timeLeft = workTime;
+            totalTime = workTime;
+            updateDisplay();
+            workBtn.classList.add('active');
+            breakBtn.classList.remove('active');
+            sessionInfo.textContent = "Ready to focus? Start the timer!";
+        }
+        
+        // Switch to break session
+        function switchToBreakSession() {
+            isWorkSession = false;
+            timeLeft = breakTime;
+            totalTime = breakTime;
+            updateDisplay();
+            breakBtn.classList.add('active');
+            workBtn.classList.remove('active');
+            sessionInfo.textContent = "Break time ready. Start when you're ready!";
+        }
+        
+        // Apply user settings
+        function applySettings() {
+            // Update work and break times
+            workTime = parseInt(workTimeInput.value) * 60;
+            breakTime = parseInt(breakTimeInput.value) * 60;
+            
+            // Reset timer with new settings
+            if (isWorkSession) {
+                timeLeft = workTime;
+                totalTime = workTime;
+            } else {
+                timeLeft = breakTime;
+                totalTime = breakTime;
+            }
+            
+            updateDisplay();
+            resetTimer();
+            
+            // Show confirmation
+            sessionInfo.textContent = "Settings applied successfully!";
+            setTimeout(() => {
+                sessionInfo.textContent = isWorkSession ? 
+                    "Ready to focus? Start the timer!" : 
+                    "Break time ready. Start when you're ready!";
+            }, 2000);
+        }
+        
+        // Change theme
+        function changeTheme(themeId) {
+            const theme = themes[themeId];
+            
+            // Update CSS variables
+            document.documentElement.style.setProperty('--primary-color', theme.primary);
+            document.documentElement.style.setProperty('--secondary-color', theme.secondary);
+            document.documentElement.style.setProperty('--background-color', theme.background);
+            document.documentElement.style.setProperty('--text-color', theme.text);
+            document.documentElement.style.setProperty('--button-color', theme.button);
+            document.documentElement.style.setProperty('--button-hover', theme.buttonHover);
+            
+            // Update active theme button
+            themeOptions.forEach(option => {
+                option.classList.remove('active');
+            });
+            document.querySelector(`.theme-option[data-theme="${themeId}"]`).classList.add('active');
+        }
+        
+        // Play a beep sound using Web Audio API
+        function playBeep() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 1);
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', pauseTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        workBtn.addEventListener('click', () => {
+            if (!isWorkSession) {
+                switchToWorkSession();
+                resetTimer();
+            }
+        });
+        breakBtn.addEventListener('click', () => {
+            if (isWorkSession) {
+                switchToBreakSession();
+                resetTimer();
+            }
+        });
+        
+        // Customization panel toggle
+        panelHeader.addEventListener('click', () => {
+            panelContent.classList.toggle('active');
+            panelHeader.querySelector('div:last-child').textContent = 
+                panelContent.classList.contains('active') ? '▲' : '▼';
+        });
+        
+        // Apply settings button
+        applySettingsBtn.addEventListener('click', applySettings);
+        
+        // Theme selection
+        themeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                changeTheme(option.getAttribute('data-theme'));
+            });
+        });
+        
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>
